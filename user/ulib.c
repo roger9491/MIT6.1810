@@ -24,6 +24,29 @@ strcpy(char *s, const char *t)
     ;
   return os;
 }
+/**
+ * @brief String whose sum does not exceed 512
+ * 
+ * @param s 
+ * @param t 
+ * @return new char*  
+ */
+char* stringJoin(char *s1, char *s2)
+{
+  char buf[512];
+  int bufIndex = 0;
+  for(int n = 0; s1[n]; n++){
+    buf[bufIndex] = s1[n];
+    bufIndex++;
+  }
+    
+  for(int n = 0; s2[n]; n++){
+    buf[bufIndex] = s2[n];
+    bufIndex++;
+  }
+
+  return buf;
+}
 
 int
 strcmp(const char *p, const char *q)
@@ -106,6 +129,14 @@ atoi(const char *s)
   return n;
 }
 
+/**
+ * @brief Overwrite n elements from vsrc to vdst.
+ * 
+ * @param vdst 
+ * @param vsrc 
+ * @param n 
+ * @return void* 
+ */
 void*
 memmove(void *vdst, const void *vsrc, int n)
 {
@@ -114,10 +145,11 @@ memmove(void *vdst, const void *vsrc, int n)
 
   dst = vdst;
   src = vsrc;
+  // dst src
   if (src > dst) {
     while(n-- > 0)
       *dst++ = *src++;
-  } else {
+  } else {  //  src dst
     dst += n;
     src += n;
     while(n-- > 0)

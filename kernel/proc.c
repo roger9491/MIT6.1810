@@ -273,7 +273,7 @@ growproc(int n)
   p->sz = sz;
   return 0;
 }
-
+// todo
 // Create a new process, copying the parent.
 // Sets up child kernel stack to return as if from fork() system call.
 int
@@ -287,6 +287,9 @@ fork(void)
   if((np = allocproc()) == 0){
     return -1;
   }
+
+  
+  np->trace_mask = p->trace_mask;
 
   // Copy user memory from parent to child.
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){

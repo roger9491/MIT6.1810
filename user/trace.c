@@ -2,7 +2,7 @@
 #include "kernel/types.h"
 #include "kernel/stat.h"
 #include "user/user.h"
-
+// todo
 int
 main(int argc, char *argv[])
 {
@@ -22,6 +22,8 @@ main(int argc, char *argv[])
   for(i = 2; i < argc && i < MAXARG; i++){
     nargv[i-2] = argv[i];
   }
+  nargv[MAXARG-1] = 0;
+
   exec(nargv[0], nargv);
   exit(0);
 }

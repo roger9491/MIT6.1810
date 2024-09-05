@@ -151,7 +151,9 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
   a = PGROUNDDOWN(va);
   last = PGROUNDDOWN(va + size - 1);
   for(;;){
-    if((pte = walk(pagetable, a, 1)) == 0)
+    pte = walk(pagetable, a, 1);
+
+    if(pte == 0)
       return -1;
     if(*pte & PTE_V)
       panic("mappages: remap");
@@ -437,3 +439,37 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+
+void printPTEAndPaAddress(pte_t pte, uint64 pa, int line, int deepth) {
+  for (int i = 0; i < deepth; i++)
+  {
+    printf(" ..");
+  }
+  
+  printf("%d: pte %p pa %p\n", line, pte, pa);
+}
+
+void vmprint_walk(pagetable_t pagetable, int deepth) {
+  for (int i = 0; i < 512; i++)
+  {
+    pte_t pte = pagetable[i];
+    if((pte & PTE_V)) {      
+      uint64 child = PTE2PA(pte);
+      printPTEAndPaAddress(pte, child, i, deepth + 1);
+
+      if ((pte & (PTE_R | PTE_W | PTE_X)) == 0)
+        vmprint_walk((pagetable_t) child, deepth + 1);
+    } 
+  }
+}
+
+void vmprint(pagetable_t pagetable) {
+  printf("page table %p\n", pagetable);
+
+  vmprint_walk(pagetable, 0);
+}
+
+
+
+
+

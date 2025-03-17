@@ -4,6 +4,15 @@
 #include <assert.h>
 #include <pthread.h>
 
+
+/* 
+  pthread_cond_wait(&cond, &mutex);
+
+  pthread_cond_broadcast(&cond);
+
+
+*/
+
 static int nthread = 1;
 static int round = 0;
 
@@ -30,7 +39,21 @@ barrier()
   // Block until all threads have called barrier() and
   // then increment bstate.round.
   //
+
+  pthread_mutex_lock(&bstate.barrier_mutex);
+
+  int current_round = bstate.round;
+
+  bstate.nthread++;
+  if (bstate.nthread == nthread) {
+    bstate.round++;
+    bstate.nthread = 0;
+    pthread_cond_broadcast(&bstate.barrier_cond);
+  } else {
+    pthread_cond_wait(&bstate.barrier_cond, &bstate.barrier_mutex);
+  }
   
+  pthread_mutex_unlock(&bstate.barrier_mutex);
 }
 
 static void *
@@ -40,6 +63,7 @@ thread(void *xa)
   long delay;
   int i;
 
+  // 20000
   for (i = 0; i < 20000; i++) {
     int t = bstate.round;
     assert (i == t);

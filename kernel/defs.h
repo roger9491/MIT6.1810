@@ -64,6 +64,12 @@ void*           kalloc(void);
 void            kfree(void *);
 void            kinit(void);
 
+// todo
+void            dec_refcount(uint64);  
+#define MAX_PAGES (PHYSTOP / PGSIZE)
+#define PA2INDEX(pa) (((pa) - KERNBASE) / PGSIZE)
+extern int page_refcount[];
+
 // log.c
 void            initlog(int, struct superblock*);
 void            log_write(struct buf*);

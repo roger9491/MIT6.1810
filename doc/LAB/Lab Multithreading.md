@@ -1,5 +1,3 @@
-# Lab: Multithreading
-
 https://pdos.csail.mit.edu/6.828/2022/labs/thread.html
 
 **branch : thread

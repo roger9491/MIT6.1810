@@ -54,6 +54,7 @@ kfree(void *pa)
     panic("kfree");
 
     
+  // todo
   acquire(&kmem.lock);
   if(page_refcount[PA2INDEX((uint64) pa)] > 0) {
     page_refcount[PA2INDEX((uint64) pa)]--;
@@ -90,11 +91,10 @@ kalloc(void)
 
   if(r) {
     memset((char*)r, 5, PGSIZE); // fill with junk
-
+    
     // todo
     uint64 pa = (uint64)r;
     page_refcount[PA2INDEX(pa)]++;
-
   }
   return (void*)r;
 }

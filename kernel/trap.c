@@ -69,51 +69,13 @@ usertrap(void)
   } else if((which_dev = devintr()) != 0){
     // ok
   } else if(r_scause() == 15 || r_scause() == 13) {
-    uint64 fault_va = r_stval();
-    pte_t *pte = walk(p->pagetable, fault_va, 0);
-    if(*pte & PTE_COW){
-      uint64 pa = PTE2PA(*pte);
-      char *mem;
-      if((mem = kalloc()) == 0) {
-        setkilled(p);
-        return;
-      }
-      memmove(mem, (char*)pa, PGSIZE);
-
-
-      uint64 flags = (PTE_FLAGS(*pte) | PTE_W) & ~PTE_COW;
-      uvmunmap(p->pagetable, PGROUNDDOWN(fault_va), 1, 0);
-      if(mappages(p->pagetable, fault_va, 1, (uint64)mem, flags) == -1) {
-        panic("uvmcowcopy: mappages");
-      }
-    
-
-      // uint flags = PTE_FLAGS(*pte);
-      // flags = (flags & ~PTE_COW) | PTE_W;
-      // *pte = PA2PTE(mem) | flags;
-
-
-
-      // dec_refcount(pa); 
-      kfree((void*)pa);
-
-      // printf("scause %p\n", r_scause());
-      // printf("sepc=%p stval=%p\n", r_sepc(), r_stval());
+    // todo
+    if(cow(r_stval(), p->pagetable) == -1) {
+      setkilled(p);
     }
-
-    
   }else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
-    
-    
-    pte_t *pte = walk(p->pagetable, r_stval(), 0); // 查詢頁表
-    if (pte && (*pte & PTE_V)) { // 確保頁表項有效
-      uint64 pa = PTE2PA(*pte) + (r_stval() & 0xFFF); // 計算物理地址
-      uint64 flags = PTE_FLAGS(*pte); // 提取頁表項的 flags
-      printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
-      printf("            sepc=%p stval=%p pa=%p flags=%x\n", r_sepc(), r_stval(), pa, flags);
-  }
     setkilled(p);
   }
 
@@ -126,6 +88,43 @@ usertrap(void)
 
   usertrapret();
 }
+
+// todo
+int cow(uint64 fault_va, pagetable_t pagetable) {
+  if(fault_va >= MAXVA) {
+    return -1;
+  }
+
+  pte_t *pte = walk(pagetable, fault_va, 0);
+  if(pte == 0) {
+    return -1;
+  }
+
+
+  if(*pte & PTE_COW){
+    uint64 pa = PTE2PA(*pte);
+    char *mem;
+    if((mem = kalloc()) == 0) {
+      // setkilled(p);
+      return -1;
+    }
+    memmove(mem, (char*)pa, PGSIZE);
+
+
+    uint64 flags = (PTE_FLAGS(*pte) | PTE_W) & ~PTE_COW;
+    uvmunmap(pagetable, PGROUNDDOWN(fault_va), 1, 0);
+    if(mappages(pagetable, fault_va, 1, (uint64)mem, flags) == -1) {
+      panic("uvmcowcopy: mappages");
+    }
+  
+    kfree((void*)pa);
+    return 1;
+  }
+
+  return -1;
+}
+
+
 
 //
 // return to user space

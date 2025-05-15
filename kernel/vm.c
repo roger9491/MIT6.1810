@@ -317,12 +317,6 @@ void print_pte(uint64 va, pagetable_t pagetable)
           PTE_FLAGS(entry));
 }
 
-int 
-cow(pte_t *pte)
-{
-  
-}
-
 // Given a parent process's page table, copy
 // its memory into a child's page table.
 // Copies both the page table and the
@@ -370,16 +364,9 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
 
     pa = PTE2PA(*pte);
     
-
-    // print_pte(i, old);
-    
     if (*pte & PTE_W) {
       *pte = (*pte & ~PTE_W) | PTE_COW;
     }
-
-
-    // printf("修改後");
-    // print_pte(i, old);
 
     uint flags = PTE_FLAGS(*pte);
     if(mappages(new, i, PGSIZE, (uint64)pa, flags) != 0){
@@ -420,34 +407,10 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
   uint64 n, va0, pa0;
 
   while(len > 0){
-
-
-    pte_t *pte = walk(pagetable, dstva, 0);
-    if(*pte & PTE_COW){
-      uint64 pa = PTE2PA(*pte);
-      char *mem;
-      if((mem = kalloc()) == 0) {
-        return -1;
-      }
-      memmove((void*)mem, (void*)pa, PGSIZE);
-
-      uint64 flags = (PTE_FLAGS(*pte) | PTE_W) & ~PTE_COW;
-      uvmunmap(pagetable, PGROUNDDOWN(dstva), 1, 0);
-      if(mappages(pagetable, PGROUNDDOWN(dstva), 1, (uint64)mem, flags) == -1) {
-        panic("uvmcowcopy: mappages");
-      }
     
-      // uint flags = PTE_FLAGS(*pte);
-      // flags = (flags & ~PTE_COW) | PTE_W;
-      // *pte = PA2PTE(mem) | flags;
-
-      // dec_refcount(pa);
-      kfree((void*)pa);
-
-    }
-
-
-
+    // todo
+    cow(dstva, pagetable);
+    
     va0 = PGROUNDDOWN(dstva);
     pa0 = walkaddr(pagetable, va0);
     if(pa0 == 0)
